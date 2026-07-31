@@ -1,0 +1,13 @@
+# ==============================================================================
+# Face Recognition Attendance System - AI & Neural Inference Dependencies
+# ==============================================================================
+
+# InsightFace library wrapper
+insightface>=0.7.3
+
+# ONNX Runtime (CPU default for maximum portable compilation setup)
+# For systems with CUDA GPUs, use 'onnxruntime-gpu' instead
+onnxruntime>=1.17.0
+
+# Mathematical distance helpers
+scikit-learn>=1.4.0

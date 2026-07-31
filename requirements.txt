@@ -1,0 +1,13 @@
+# ==============================================================================
+# Face Recognition Attendance System - Master Dependencies Setup File
+# Runs a complete installation of runtime requirements:
+# Usage: pip install -r requirements.txt
+# ==============================================================================
+
+-r requirements/base.txt
+-r requirements/gui.txt
+-r requirements/db.txt
+-r requirements/ai.txt
+
+# Note: Dev/Testing libraries are separated. Install them using:
+# pip install -r requirements/dev.txt -r requirements/testing.txt

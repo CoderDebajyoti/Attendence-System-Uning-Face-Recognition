@@ -1,0 +1,57 @@
+# ==============================================================================
+# Face Recognition Attendance System - Git Ignore Rules
+# ==============================================================================
+
+# 1. Python Compile Cache and Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.ipynb_checkpoints/
+
+# 2. Virtual Environments and Sandbox
+.venv/
+venv/
+ENV/
+env/
+active_env/
+
+# 3. Environment Variables & Configurations
+.env
+.env.*
+! .env.example
+configs/config.yaml
+
+# 4. Database Files and Outputs
+database/*.db
+database/*.sqlite
+database/backups/*
+database/exports/*
+database/datasets/*
+
+# 5. Diagnostic Log Files
+logs/*.log
+logs/*.log.*
+
+# 6. Deep Learning Weights (Models are download-on-setup or custom built)
+models/*.onnx
+models/*.pb
+models/*.pth
+models/*.bin
+
+# 7. Quality Tool Cache & Output Files
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+pyinstaller/
+
+# 8. OS Specific (Windows thumbs/Mac DS Store)
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store

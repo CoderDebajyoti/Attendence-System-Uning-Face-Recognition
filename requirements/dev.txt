@@ -1,0 +1,13 @@
+# ==============================================================================
+# Face Recognition Attendance System - Developer Linter & Quality Utilities
+# ==============================================================================
+
+ruff>=0.2.0
+black>=24.1.0
+mypy>=1.8.0
+
+# Type check annotations for dependencies
+types-pillow>=10.2.0
+types-pyyaml>=6.0.12
+types-psycopg2>=2.9.21
+

@@ -11,6 +11,21 @@ project_root = Path(__file__).resolve().parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# Auto-activate local virtual environment packages if run outside the virtual environment
+venv_dir = project_root / ".venv"
+if venv_dir.exists():
+    # Windows fallback site-packages path
+    win_site_packages = venv_dir / "Lib" / "site-packages"
+    if win_site_packages.exists() and str(win_site_packages) not in sys.path:
+        sys.path.insert(0, str(win_site_packages))
+    
+    # Unix fallback site-packages path (e.g. .venv/lib/python3.x/site-packages)
+    unix_lib = venv_dir / "lib"
+    if unix_lib.exists():
+        for py_dir in unix_lib.glob("python3.*/site-packages"):
+            if py_dir.exists() and str(py_dir) not in sys.path:
+                sys.path.insert(0, str(py_dir))
+
 import customtkinter as ctk
 from src.core.config import ConfigLoader
 

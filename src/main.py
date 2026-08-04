@@ -28,6 +28,7 @@ if venv_dir.exists():
 
 import customtkinter as ctk
 from src.core.config import ConfigLoader
+from src.gui import AppShell
 
 
 def setup_directories(settings) -> None:
@@ -54,9 +55,31 @@ def initialize_logger(settings) -> None:
         ]
     )
 
+def validate_system_startup(settings) -> bool:
+    """
+    Validates essential system configurations and directory permissions on boot.
+    """
+    logger = logging.getLogger("app.bootstrap")
+    logger.info("Executing system startup diagnostics...")
+    
+    # Check directory access
+    for path_str in [settings.model_path, settings.dataset_path, settings.export_path, settings.backup_path]:
+        path = Path(path_str)
+        if not path.exists():
+            logger.error(f"Startup check failed: Directory '{path_str}' does not exist.")
+            return False
+            
+    # Check database URL configuration
+    if not settings.database_url:
+        logger.error("Startup check failed: Database connection string is empty.")
+        return False
+        
+    logger.info("Startup diagnostics passed successfully.")
+    return True
+
 def main() -> None:
     """
-    Bootstrap process loading configuration settings and launching verification window.
+    Bootstrap process loading configuration settings and launching the main Application Shell.
     """
     # 1. Parse configuration parameters
     settings = ConfigLoader.load_config()
@@ -72,48 +95,16 @@ def main() -> None:
     logger.info(f"Environment: {settings.app_env} | Debug: {settings.debug}")
     logger.info(f"Database URL: {settings.database_url}")
     
-    # 4. Spawns custom Tkinter window for system structure validation
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("blue")
+    # 4. Perform startup validation
+    if not validate_system_startup(settings):
+        logger.critical("System diagnostics failed. Aborting startup.")
+        sys.exit(1)
+        
+    # 5. Bootstraps the main CustomTkinter Application Shell
+    logger.info("Bootstrapping Application Shell GUI...")
+    app = AppShell()
     
-    app = ctk.CTk()
-    app.title("Face Recognition Attendance System - Setup Verification")
-    app.geometry("600x400")
-    
-    # Visual overlay labels
-    title_label = ctk.CTkLabel(
-        app, 
-        text="Project Skeleton Verification Mode", 
-        font=ctk.CTkFont(size=22, weight="bold")
-    )
-    title_label.pack(pady=40)
-    
-    status_text = (
-        f"✓ Configs Parsed Successfully\n"
-        f"✓ Sandboxed Folders Mapped\n"
-        f"✓ Diagnostic Logs Configured\n\n"
-        f"Application Name: {settings.app_name}\n"
-        f"Database Path: {settings.database_url}\n"
-        f"Threshold Limit: {settings.recognition_threshold}\n"
-    )
-    
-    status_label = ctk.CTkLabel(
-        app, 
-        text=status_text, 
-        justify="left",
-        font=ctk.CTkFont(size=14)
-    )
-    status_label.pack(pady=20)
-    
-    info_label = ctk.CTkLabel(
-        app, 
-        text="GUI Panels and AI Inference loops will be integrated in subsequent phases.", 
-        text_color="gray",
-        font=ctk.CTkFont(size=12, slant="italic")
-    )
-    info_label.pack(side="bottom", pady=20)
-    
-    logger.info("Startup validation GUI window ready. Launching loop...")
+    logger.info("Application Shell ready. Launching main event loop...")
     app.mainloop()
 
 if __name__ == "__main__":

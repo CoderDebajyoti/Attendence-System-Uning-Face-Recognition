@@ -15,3 +15,5 @@ from src.gui.pages.attendance import AttendancePage
 from src.gui.pages.reports import ReportsPage
 from src.gui.pages.settings import SettingsPage
 from src.gui.pages.about import AboutPage
+from src.gui.pages.splash import SplashScreen
+from src.gui.pages.page_manager import PageManager

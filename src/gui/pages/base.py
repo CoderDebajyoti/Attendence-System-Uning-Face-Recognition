@@ -1,20 +1,20 @@
 # ==============================================================================
-# Face Recognition Attendance System - Base Page class
+# Face Recognition Attendance System - Base Page Class
 # ==============================================================================
 
 import customtkinter as ctk
-from src.gui.theme import Theme
+from src.gui.themes import ThemeManager
 
 class BasePage(ctk.CTkFrame):
     """
     Abstract base page view class. All navigation page views subclass this frame
     to inherit consistent layout structures and phase markings.
     """
-    def __init__(self, parent, controller, title: str, description: str, phase: int):
-        super().__init__(parent, fg_color=Theme.BG_MAIN)
+    def __init__(self, parent, controller, title: str, description: str, phase: int) -> None:
+        super().__init__(parent, fg_color=ThemeManager.get_color("bg_main"))
         self.controller = controller
-        self.title = title
-        self.description = description
+        self.title_text = title
+        self.description_text = description
         self.phase = phase
         
         # Grid weights setup
@@ -23,15 +23,15 @@ class BasePage(ctk.CTkFrame):
         
         # 1. Page Header Area
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.header_frame.grid(row=0, column=0, sticky="ew", padx=Theme.PAD_XL, pady=(Theme.PAD_XL, Theme.PAD_MD))
+        self.header_frame.grid(row=0, column=0, sticky="ew", padx=ThemeManager.PAD_XL, pady=(ThemeManager.PAD_XL, ThemeManager.PAD_MD))
         self.header_frame.grid_columnconfigure(0, weight=1)
         
         # Title
         self.title_label = ctk.CTkLabel(
             self.header_frame, 
-            text=self.title, 
-            font=Theme.get_font(size=24, weight="bold"),
-            text_color=Theme.TEXT_PRIMARY
+            text=self.title_text, 
+            font=ThemeManager.get_font(size=24, weight="bold"),
+            text_color=ThemeManager.get_color("text_primary")
         )
         self.title_label.grid(row=0, column=0, sticky="w")
         
@@ -39,10 +39,10 @@ class BasePage(ctk.CTkFrame):
         self.phase_tag = ctk.CTkLabel(
             self.header_frame,
             text=f"Phase {self.phase} Design",
-            font=Theme.get_font(size=11, weight="bold"),
-            fg_color=Theme.BG_ACTIVE,
-            text_color=Theme.ACCENT_PRIMARY,
-            corner_radius=Theme.CORNER_RADIUS_SM,
+            font=ThemeManager.get_font(size=11, weight="bold"),
+            fg_color=ThemeManager.get_color("bg_active"),
+            text_color=ThemeManager.get_color("accent_primary"),
+            corner_radius=ThemeManager.CORNER_RADIUS_SM,
             width=90,
             height=24
         )
@@ -51,28 +51,28 @@ class BasePage(ctk.CTkFrame):
         # Description
         self.desc_label = ctk.CTkLabel(
             self.header_frame, 
-            text=self.description, 
-            font=Theme.get_font(size=13),
-            text_color=Theme.TEXT_MUTED,
+            text=self.description_text, 
+            font=ThemeManager.get_font(size=13),
+            text_color=ThemeManager.get_color("text_muted"),
             wraplength=700,
             justify="left"
         )
-        self.desc_label.grid(row=1, column=0, columnspan=2, sticky="w", pady=(Theme.PAD_XS, 0))
+        self.desc_label.grid(row=1, column=0, columnspan=2, sticky="w", pady=(ThemeManager.PAD_XS, 0))
         
         # 2. Horizontal Divider
-        self.divider = ctk.CTkFrame(self, height=1, fg_color=Theme.BORDER_COLOR)
-        self.divider.grid(row=1, column=0, sticky="ew", padx=Theme.PAD_XL, pady=(0, Theme.PAD_MD))
+        self.divider = ctk.CTkFrame(self, height=1, fg_color=ThemeManager.get_color("border"))
+        self.divider.grid(row=1, column=0, sticky="ew", padx=ThemeManager.PAD_XL, pady=(0, ThemeManager.PAD_MD))
         
         # 3. Main Content Area (Subclasses override this by packing/gridding inside self.content_frame)
         self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.content_frame.grid(row=2, column=0, sticky="nsew", padx=Theme.PAD_XL, pady=(0, Theme.PAD_XL))
+        self.content_frame.grid(row=2, column=0, sticky="nsew", padx=ThemeManager.PAD_XL, pady=(0, ThemeManager.PAD_XL))
         
         # Default placeholder if no content is added
         self.show_default_placeholder()
 
     def show_default_placeholder(self) -> None:
         """
-        Creates a beautiful placeholder overlay when sub-pages are not yet completed.
+        Creates a placeholder overlay when sub-pages are not yet completed.
         """
         # Configure layout inside content area
         self.content_frame.grid_columnconfigure(0, weight=1)
@@ -80,10 +80,10 @@ class BasePage(ctk.CTkFrame):
         
         card = ctk.CTkFrame(
             self.content_frame, 
-            fg_color=Theme.BG_CARD,
-            border_color=Theme.BORDER_COLOR,
-            border_width=Theme.BORDER_WIDTH,
-            corner_radius=Theme.CORNER_RADIUS_LG
+            fg_color=ThemeManager.get_color("bg_card"),
+            border_color=ThemeManager.get_color("border"),
+            border_width=ThemeManager.BORDER_WIDTH,
+            corner_radius=ThemeManager.CORNER_RADIUS_LG
         )
         card.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         card.grid_columnconfigure(0, weight=1)
@@ -96,23 +96,23 @@ class BasePage(ctk.CTkFrame):
         icon_label = ctk.CTkLabel(
             inner_content, 
             text="✨", 
-            font=Theme.get_font(size=56)
+            font=ThemeManager.get_font(size=56)
         )
         icon_label.pack(pady=10)
         
         status_header = ctk.CTkLabel(
             inner_content,
             text="Feature Under Development",
-            font=Theme.get_font(size=18, weight="bold"),
-            text_color=Theme.TEXT_PRIMARY
+            font=ThemeManager.get_font(size=18, weight="bold"),
+            text_color=ThemeManager.get_color("text_primary")
         )
         status_header.pack(pady=5)
         
         status_sub = ctk.CTkLabel(
             inner_content,
-            text=f"The structural layout for this view is ready.\nThe backend services and UI elements will be integrated during Phase {self.phase + 1}.",
-            font=Theme.get_font(size=12),
-            text_color=Theme.TEXT_MUTED,
+            text=f"The structural layout for this view is ready.\nThe backend services and UI elements will be integrated during future phases.",
+            font=ThemeManager.get_font(size=12),
+            text_color=ThemeManager.get_color("text_muted"),
             justify="center"
         )
         status_sub.pack(pady=10)
@@ -120,10 +120,10 @@ class BasePage(ctk.CTkFrame):
         coming_soon_badge = ctk.CTkLabel(
             inner_content,
             text="COMING SOON",
-            font=Theme.get_font(size=11, weight="bold"),
-            text_color=Theme.TEXT_DARK,
-            fg_color=Theme.ACCENT_PRIMARY,
-            corner_radius=Theme.CORNER_RADIUS_SM,
+            font=ThemeManager.get_font(size=11, weight="bold"),
+            text_color=ThemeManager.get_color("text_dark"),
+            fg_color=ThemeManager.get_color("accent_primary"),
+            corner_radius=ThemeManager.CORNER_RADIUS_SM,
             width=110,
             height=26
         )

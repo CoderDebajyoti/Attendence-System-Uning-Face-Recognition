@@ -28,7 +28,7 @@ if venv_dir.exists():
 
 import customtkinter as ctk
 from src.core.config import ConfigLoader
-from src.gui import AppShell
+from src.gui import AppShell, SplashScreen
 
 
 def setup_directories(settings) -> None:
@@ -100,12 +100,21 @@ def main() -> None:
         logger.critical("System diagnostics failed. Aborting startup.")
         sys.exit(1)
         
-    # 5. Bootstraps the main CustomTkinter Application Shell
-    logger.info("Bootstrapping Application Shell GUI...")
-    app = AppShell()
+    # 5. Spawns the startup splash screen loader
+    logger.info("Spawning loading splash screen...")
     
-    logger.info("Application Shell ready. Launching main event loop...")
-    app.mainloop()
+    def boot_app_shell() -> None:
+        """
+        Callback trigger to initialize AppShell coordinate frame after splash finishes loading.
+        """
+        logger.info("Splash screen completed. Bootstrapping Application Shell GUI...")
+        app = AppShell(settings)
+        logger.info("Application Shell ready. Launching main event loop...")
+        app.mainloop()
+
+    # Spawns splash screen event loop
+    splash = SplashScreen(settings, on_complete_callback=boot_app_shell)
+    splash.mainloop()
 
 if __name__ == "__main__":
     main()

@@ -52,6 +52,11 @@ class ConfigLoader:
         except ValueError:
             cooldown_minutes = 30
 
+        try:
+            target_image_count = int(os.getenv("TARGET_IMAGE_COUNT", "25"))
+        except ValueError:
+            target_image_count = 25
+
         # Build paths objects
         model_path = Path(os.getenv("MODEL_PATH", "models"))
         dataset_path = Path(os.getenv("DATASET_PATH", "database/datasets"))
@@ -69,6 +74,7 @@ class ConfigLoader:
             camera_fps_target=camera_fps_target,
             recognition_threshold=recognition_threshold,
             cooldown_minutes=cooldown_minutes,
+            target_image_count=target_image_count,
             model_path=model_path,
             dataset_path=dataset_path,
             export_path=export_path,

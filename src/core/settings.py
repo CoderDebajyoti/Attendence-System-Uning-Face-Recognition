@@ -30,6 +30,7 @@ class AppSettings:
     # Recognition limits
     recognition_threshold: float = constants.DEFAULT_RECOGNITION_THRESHOLD
     cooldown_minutes: int = constants.DEFAULT_COOLDOWN_MINUTES
+    target_image_count: int = constants.DEFAULT_TARGET_IMAGE_COUNT
 
     # Storage paths
     model_path: Path = field(default_factory=lambda: Path("models"))

@@ -18,13 +18,29 @@ class DashboardPage(BasePage):
             controller=controller,
             title="System Dashboard",
             description="Operational metrics overview and biometric engine status diagnostics.",
-            phase=6
+            phase=7
         )
         
     def show_default_placeholder(self) -> None:
         """
         Overrides base class to build a professional dashboard metrics panel.
         """
+        # Fetch real-time statistics from DB
+        from src.controllers import StudentController
+        self.student_controller = StudentController()
+        
+        try:
+            stats = self.student_controller.get_dashboard_statistics()
+        except Exception:
+            # Fallback if DB fails or tables are unseeded
+            stats = {
+                "total": 0,
+                "active": 0,
+                "inactive": 0,
+                "with_dataset": 0,
+                "without_dataset": 0
+            }
+
         # Configure layout grids
         self.content_frame.grid_columnconfigure((0, 1, 2), weight=1)
         self.content_frame.grid_rowconfigure((1, 2), weight=1)
@@ -33,7 +49,7 @@ class DashboardPage(BasePage):
         self.student_stat = StatisticWidget(
             self.content_frame, 
             title="Total Enrolled Students", 
-            value="154 Students", 
+            value=f"{stats['total']} Students", 
             accent_color=ThemeManager.get_color("accent_secondary"),
             icon="👥"
         )
@@ -42,7 +58,7 @@ class DashboardPage(BasePage):
         self.faculty_stat = StatisticWidget(
             self.content_frame, 
             title="Active Faculty Members", 
-            value="18 Faculty", 
+            value="0 Faculty",  # Placeholder until Faculty Module
             accent_color=ThemeManager.get_color("accent_primary"),
             icon="👨‍🏫"
         )
@@ -51,7 +67,7 @@ class DashboardPage(BasePage):
         self.attendance_stat = StatisticWidget(
             self.content_frame, 
             title="Today's Attendance", 
-            value="142 / 154 Present (92.2%)", 
+            value="0 / 0 Present (0.0%)",  # Placeholder until Attendance Module
             accent_color=ThemeManager.get_color("accent_success"),
             icon="📝"
         )
@@ -59,7 +75,7 @@ class DashboardPage(BasePage):
         
         # 2. Row 1: Configurations and Biometric Diagnostic Panels
         self.create_system_status_panel(row=1, col=0, columnspan=2)
-        self.create_biometric_diagnostics_panel(row=1, col=2)
+        self.create_biometric_diagnostics_panel(row=1, col=2, stats=stats)
         
         # 3. Row 2: Console Log Tracer Panel
         self.create_activity_panel(row=2, col=0, columnspan=3)
@@ -95,7 +111,7 @@ class DashboardPage(BasePage):
             val = ctk.CTkLabel(panel, text=val_txt, font=ThemeManager.get_font(size=12, weight="bold"), text_color=val_color)
             val.grid(row=idx+1, column=1, sticky="w", padx=ThemeManager.PAD_LG, pady=ThemeManager.PAD_XS)
 
-    def create_biometric_diagnostics_panel(self, row: int, col: int) -> None:
+    def create_biometric_diagnostics_panel(self, row: int, col: int, stats: dict) -> None:
         """
         Builds a diagnostic panel showing status of biometric engines.
         """
@@ -112,8 +128,8 @@ class DashboardPage(BasePage):
         title.grid(row=0, column=0, columnspan=2, sticky="w", padx=ThemeManager.PAD_LG, pady=ThemeManager.PAD_LG)
         
         diagnostics = [
-            ("Recognition Engine", "Offline (Phase 6 Core)", ThemeManager.get_color("accent_danger")),
-            ("Face Dataset Storage", "Ready (154 Templates)", ThemeManager.get_color("accent_success")),
+            ("Recognition Engine", "Offline (Phase 7 Core)", ThemeManager.get_color("accent_danger")),
+            ("Face Dataset Storage", f"Ready ({stats['with_dataset']} Templates)", ThemeManager.get_color("accent_success")),
             ("Confidence Threshold", "0.65 (Cosine)", ThemeManager.get_color("accent_secondary")),
             ("Camera Stream Link", "Local Interface (0)", ThemeManager.get_color("text_light"))
         ]
@@ -155,16 +171,16 @@ class DashboardPage(BasePage):
         
         # Populate initial logs
         initial_logs = (
-            "2026-08-04 21:35:37 [INFO] app.bootstrap: Initializing Face Recognition Attendance System workspace...\n"
-            "2026-08-04 21:35:37 [INFO] app.bootstrap: Environment: development | Debug: True\n"
-            "2026-08-04 21:35:37 [INFO] app.bootstrap: Database URL: sqlite:///database/app_database.db\n"
-            "2026-08-04 21:35:37 [INFO] app.bootstrap: Executing system startup diagnostics...\n"
-            "2026-08-04 21:35:37 [INFO] app.bootstrap: Startup diagnostics passed successfully.\n"
-            "2026-08-04 21:35:38 [INFO] app.bootstrap: Spawning loading splash screen...\n"
-            "2026-08-04 21:35:40 [INFO] app.bootstrap: Bootstrapping Application Shell GUI...\n"
-            "2026-08-04 21:35:41 [INFO] app.shell: Main application shell layout successfully loaded.\n"
-            "2026-08-04 21:35:41 [INFO] app.shell: PageManager pre-registered 12 views.\n"
-            "2026-08-04 21:35:41 [INFO] app.shell: NavigationManager configured page routing links."
+            "2026-08-09 10:59:31 [INFO] app.bootstrap: Initializing Face Recognition Attendance System workspace...\n"
+            "2026-08-09 10:59:31 [INFO] app.bootstrap: Environment: development | Debug: True\n"
+            "2026-08-09 10:59:31 [INFO] app.bootstrap: Database URL: sqlite:///database/app_database.db\n"
+            "2026-08-09 10:59:32 [INFO] app.bootstrap: Executing system startup diagnostics...\n"
+            "2026-08-09 10:59:32 [INFO] app.bootstrap: Startup diagnostics passed successfully.\n"
+            "2026-08-09 10:59:32 [INFO] app.database: Connecting database engine and seeding...\n"
+            "2026-08-09 10:59:33 [INFO] app.bootstrap: Spawning loading splash screen...\n"
+            "2026-08-09 10:59:35 [INFO] app.bootstrap: Splash screen completed. Bootstrapping Application Shell GUI...\n"
+            "2026-08-09 10:59:36 [INFO] app.shell: Main application shell layout successfully loaded.\n"
+            "2026-08-09 10:59:36 [INFO] app.shell: Student Module fully integrated. Database counts active."
         )
         log_box.insert("0.0", initial_logs)
         log_box.configure(state="disabled") # Read only

@@ -100,6 +100,14 @@ def main() -> None:
         logger.critical("System diagnostics failed. Aborting startup.")
         sys.exit(1)
         
+    # Initialize Database connection
+    from src.core.database import initialize_database
+    try:
+        initialize_database(settings.database_url)
+    except Exception as e:
+        logger.critical(f"Database connection failed: {e}")
+        sys.exit(1)
+        
     # 5. Spawns the startup splash screen loader
     logger.info("Spawning loading splash screen...")
     

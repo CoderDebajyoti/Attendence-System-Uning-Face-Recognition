@@ -11,6 +11,7 @@ EMBEDDING_DIM = 512              # length of ArcFace float feature vector
 DEFAULT_RECOGNITION_THRESHOLD = 0.65
 DEFAULT_COOLDOWN_MINUTES = 30
 DEFAULT_CAMERA_FPS = 30
+DEFAULT_TARGET_IMAGE_COUNT = 25
 
 # --- Graphic Customizations ---
 THEME_LIGHT = "light"

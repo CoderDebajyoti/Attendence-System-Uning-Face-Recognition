@@ -20,7 +20,7 @@ class StatusManager:
         
         self.version_label = ctk.CTkLabel(
             self.left_panel,
-            text="v1.0.0-Beta (Phase 6 Shell)",
+            text="v1.0.0",
             font=ThemeManager.get_font(size=10, weight="bold"),
             text_color=ThemeManager.get_color("text_muted")
         )

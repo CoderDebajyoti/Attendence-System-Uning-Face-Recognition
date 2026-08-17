@@ -11,9 +11,12 @@ from src.gui.pages.courses import CoursesPage
 from src.gui.pages.subjects import SubjectsPage
 from src.gui.pages.dataset import DatasetPage
 from src.gui.pages.camera import CameraPage
+from src.gui.pages.recognition import RecognitionPage
 from src.gui.pages.attendance import AttendancePage
 from src.gui.pages.reports import ReportsPage
 from src.gui.pages.settings import SettingsPage
 from src.gui.pages.about import AboutPage
 from src.gui.pages.splash import SplashScreen
 from src.gui.pages.page_manager import PageManager
+from src.gui.pages.login import LoginPage
+

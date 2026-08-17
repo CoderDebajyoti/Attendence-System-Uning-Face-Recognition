@@ -30,6 +30,7 @@ class ConfigLoader:
         database_url = os.getenv("DATABASE_URL", "sqlite:///database/app_database.db")
         camera_rtsp_url = os.getenv("CAMERA_RTSP_URL", "")
         secret_key = os.getenv("SECRET_KEY", "replace_with_a_secure_cryptographic_secret_key_in_production")
+        attendance_auto_mode = os.getenv("ATTENDANCE_AUTO_MODE", "False").lower() in ("true", "1", "yes")
 
         # Safely convert numeric indicators
         try:
@@ -75,6 +76,7 @@ class ConfigLoader:
             recognition_threshold=recognition_threshold,
             cooldown_minutes=cooldown_minutes,
             target_image_count=target_image_count,
+            attendance_auto_mode=attendance_auto_mode,
             model_path=model_path,
             dataset_path=dataset_path,
             export_path=export_path,

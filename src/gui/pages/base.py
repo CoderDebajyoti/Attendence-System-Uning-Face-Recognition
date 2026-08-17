@@ -35,19 +35,6 @@ class BasePage(ctk.CTkFrame):
         )
         self.title_label.grid(row=0, column=0, sticky="w")
         
-        # Development Phase Tag
-        self.phase_tag = ctk.CTkLabel(
-            self.header_frame,
-            text=f"Phase {self.phase} Design",
-            font=ThemeManager.get_font(size=11, weight="bold"),
-            fg_color=ThemeManager.get_color("bg_active"),
-            text_color=ThemeManager.get_color("accent_primary"),
-            corner_radius=ThemeManager.CORNER_RADIUS_SM,
-            width=90,
-            height=24
-        )
-        self.phase_tag.grid(row=0, column=1, sticky="e")
-        
         # Description
         self.desc_label = ctk.CTkLabel(
             self.header_frame, 

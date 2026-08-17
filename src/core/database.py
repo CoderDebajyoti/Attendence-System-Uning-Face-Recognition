@@ -6,7 +6,7 @@ import os
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.core.models import Base, Department, Course
+from src.core.models import Base, Department, Course, User
 
 # Session factory placeholder
 _SessionFactory = None

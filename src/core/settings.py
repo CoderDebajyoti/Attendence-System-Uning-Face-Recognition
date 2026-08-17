@@ -31,6 +31,8 @@ class AppSettings:
     recognition_threshold: float = constants.DEFAULT_RECOGNITION_THRESHOLD
     cooldown_minutes: int = constants.DEFAULT_COOLDOWN_MINUTES
     target_image_count: int = constants.DEFAULT_TARGET_IMAGE_COUNT
+    attendance_auto_mode: bool = constants.DEFAULT_ATTENDANCE_AUTO_MODE
+
 
     # Storage paths
     model_path: Path = field(default_factory=lambda: Path("models"))

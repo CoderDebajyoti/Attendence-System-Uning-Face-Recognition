@@ -2,7 +2,7 @@
 # Face Recognition Attendance System - Database Schema Models
 # ==============================================================================
 
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date, Time, DateTime, Float, LargeBinary
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date, Time, DateTime, Float, LargeBinary, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
@@ -115,6 +115,25 @@ class FaceEmbedding(Base):
     
     student = relationship("Student", back_populates="face_embeddings")
 
+class AttendanceSession(Base):
+    """
+    Session representing a specific class, day, or time slot for attendance.
+    """
+    __tablename__ = "attendance_sessions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    date = Column(String(20), nullable=False)  # YYYY-MM-DD
+    start_time = Column(String(20), nullable=False)  # HH:MM:SS
+    end_time = Column(String(20), nullable=False)  # HH:MM:SS
+    status = Column(String(20), default="Active", nullable=False)  # Active, Completed, Cancelled
+    created_by = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    attendance_records = relationship("Attendance", back_populates="session", cascade="all, delete-orphan")
+
+
 class Attendance(Base):
     """
     Daily attendance logs registry.
@@ -122,14 +141,28 @@ class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
-    subject_id = Column(Integer, nullable=False)  # Decoupled standard key or ForeignKey
-    date = Column(String(20), nullable=False)  # YYYY-MM-DD
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
+    session_id = Column(Integer, ForeignKey("attendance_sessions.id", ondelete="SET NULL"), nullable=True, index=True)
+    subject_id = Column(Integer, nullable=True)  # Decoupled standard key or ForeignKey
+    date = Column(String(20), nullable=False, index=True)  # YYYY-MM-DD
     time_in = Column(String(20), nullable=False)  # HH:MM:SS
-    status = Column(String(20), nullable=False)  # Present, Absent, Late, Excused
+    time_out = Column(String(20), nullable=True)  # HH:MM:SS (future/optional)
+    status = Column(String(20), nullable=False, index=True)  # PRESENT, LATE, ABSENT, EXCUSED
+
+    recognition_score = Column(Float, nullable=True)
+    recognition_method = Column(String(50), nullable=True)
+    source = Column(String(20), nullable=False, default="FACE_RECOGNITION")  # FACE_RECOGNITION, MANUAL
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_by = Column(String(100), nullable=True)
     marked_by_user_id = Column(Integer, nullable=True)
     
     student = relationship("Student", back_populates="attendance_records")
+    session = relationship("AttendanceSession", back_populates="attendance_records")
+
+    __table_args__ = (
+        UniqueConstraint('student_id', 'date', 'session_id', name='uq_student_date_session'),
+    )
 
 class AttendanceLog(Base):
     """
@@ -146,3 +179,17 @@ class AttendanceLog(Base):
     status = Column(String(50), nullable=False)
     
     student = relationship("Student", back_populates="attendance_logs")
+
+class User(Base):
+    """
+    User accounts for system administration and authentication controls.
+    """
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default="Admin", nullable=False)  # Admin, Faculty
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+

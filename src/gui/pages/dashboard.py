@@ -27,18 +27,30 @@ class DashboardPage(BasePage):
         """
         # Fetch real-time statistics from DB
         from src.controllers import StudentController
+        from src.controllers.attendance_controller import AttendanceController
         self.student_controller = StudentController()
+        self.attendance_controller = AttendanceController()
         
         try:
             stats = self.student_controller.get_dashboard_statistics()
         except Exception:
-            # Fallback if DB fails or tables are unseeded
             stats = {
                 "total": 0,
                 "active": 0,
                 "inactive": 0,
                 "with_dataset": 0,
                 "without_dataset": 0
+            }
+
+        try:
+            att_stats = self.attendance_controller.get_today_statistics()
+        except Exception:
+            att_stats = {
+                "total_marked": 0,
+                "present": 0,
+                "late": 0,
+                "rate": 0.0,
+                "total_students": 0
             }
 
         # Configure layout grids
@@ -55,19 +67,19 @@ class DashboardPage(BasePage):
         )
         self.student_stat.grid(row=0, column=0, sticky="nsew", padx=ThemeManager.PAD_SM, pady=ThemeManager.PAD_SM)
         
-        self.faculty_stat = StatisticWidget(
+        self.dataset_stat = StatisticWidget(
             self.content_frame, 
-            title="Active Faculty Members", 
-            value="0 Faculty",  # Placeholder until Faculty Module
+            title="Trained Biometric Profiles", 
+            value=f"{stats['with_dataset']} Profiles",
             accent_color=ThemeManager.get_color("accent_primary"),
-            icon="👨‍🏫"
+            icon="📂"
         )
-        self.faculty_stat.grid(row=0, column=1, sticky="nsew", padx=ThemeManager.PAD_SM, pady=ThemeManager.PAD_SM)
+        self.dataset_stat.grid(row=0, column=1, sticky="nsew", padx=ThemeManager.PAD_SM, pady=ThemeManager.PAD_SM)
         
         self.attendance_stat = StatisticWidget(
             self.content_frame, 
             title="Today's Attendance", 
-            value="0 / 0 Present (0.0%)",  # Placeholder until Attendance Module
+            value=f"{att_stats['present'] + att_stats['late']} / {att_stats['total_students']} Present ({att_stats['rate']}%)", 
             accent_color=ThemeManager.get_color("accent_success"),
             icon="📝"
         )
@@ -127,11 +139,39 @@ class DashboardPage(BasePage):
         )
         title.grid(row=0, column=0, columnspan=2, sticky="w", padx=ThemeManager.PAD_LG, pady=ThemeManager.PAD_LG)
         
+        # Load live recognition service status
+        try:
+            from src.services.face_recognition_service import FaceRecognitionService
+            rec_service = FaceRecognitionService.get_instance(self.controller.settings)
+            model_status = rec_service.get_model_status()
+            
+            status_colors = {
+                "READY": ThemeManager.get_color("accent_success"),
+                "OUTDATED": ThemeManager.get_color("accent_warning"),
+                "BUILDING": ThemeManager.get_color("accent_warning"),
+                "INVALID": ThemeManager.get_color("accent_danger"),
+                "NOT_BUILT": ThemeManager.get_color("text_muted")
+            }
+            rec_engine_text = f"Model {model_status.replace('_', ' ')}"
+            rec_engine_color = status_colors.get(model_status, ThemeManager.get_color("text_primary"))
+        except Exception:
+            rec_engine_text = "Offline"
+            rec_engine_color = ThemeManager.get_color("accent_danger")
+
+        # Threshold value
+        threshold_val = f"{self.controller.settings.recognition_threshold} (LBPH)"
+        
+        # Camera link
+        if self.controller.settings.camera_rtsp_url:
+            cam_text = "RTSP Stream Feed"
+        else:
+            cam_text = f"Local Device ({self.controller.settings.camera_id})"
+
         diagnostics = [
-            ("Recognition Engine", "Offline (Phase 7 Core)", ThemeManager.get_color("accent_danger")),
+            ("Recognition Engine", rec_engine_text, rec_engine_color),
             ("Face Dataset Storage", f"Ready ({stats['with_dataset']} Templates)", ThemeManager.get_color("accent_success")),
-            ("Confidence Threshold", "0.65 (Cosine)", ThemeManager.get_color("accent_secondary")),
-            ("Camera Stream Link", "Local Interface (0)", ThemeManager.get_color("text_light"))
+            ("Confidence Threshold", threshold_val, ThemeManager.get_color("accent_secondary")),
+            ("Camera Stream Link", cam_text, ThemeManager.get_color("text_light"))
         ]
         
         for idx, (label_txt, val_txt, val_color) in enumerate(diagnostics):
@@ -169,18 +209,19 @@ class DashboardPage(BasePage):
         )
         log_box.grid(row=1, column=0, sticky="nsew", padx=ThemeManager.PAD_LG, pady=(0, ThemeManager.PAD_LG))
         
-        # Populate initial logs
-        initial_logs = (
-            "2026-08-09 10:59:31 [INFO] app.bootstrap: Initializing Face Recognition Attendance System workspace...\n"
-            "2026-08-09 10:59:31 [INFO] app.bootstrap: Environment: development | Debug: True\n"
-            "2026-08-09 10:59:31 [INFO] app.bootstrap: Database URL: sqlite:///database/app_database.db\n"
-            "2026-08-09 10:59:32 [INFO] app.bootstrap: Executing system startup diagnostics...\n"
-            "2026-08-09 10:59:32 [INFO] app.bootstrap: Startup diagnostics passed successfully.\n"
-            "2026-08-09 10:59:32 [INFO] app.database: Connecting database engine and seeding...\n"
-            "2026-08-09 10:59:33 [INFO] app.bootstrap: Spawning loading splash screen...\n"
-            "2026-08-09 10:59:35 [INFO] app.bootstrap: Splash screen completed. Bootstrapping Application Shell GUI...\n"
-            "2026-08-09 10:59:36 [INFO] app.shell: Main application shell layout successfully loaded.\n"
-            "2026-08-09 10:59:36 [INFO] app.shell: Student Module fully integrated. Database counts active."
-        )
-        log_box.insert("0.0", initial_logs)
+        # Populate logs from active logs file
+        from pathlib import Path
+        log_path = Path("logs/app_system.log")
+        log_content = ""
+        if log_path.exists():
+            try:
+                with open(log_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                    log_content = "".join(lines[-35:])
+            except Exception as e:
+                log_content = f"Error reading active diagnostics logs: {e}"
+        else:
+            log_content = "System log file 'logs/app_system.log' not found."
+
+        log_box.insert("0.0", log_content)
         log_box.configure(state="disabled") # Read only

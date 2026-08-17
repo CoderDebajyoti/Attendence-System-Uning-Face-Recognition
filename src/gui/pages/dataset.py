@@ -195,7 +195,8 @@ class DatasetPage(BasePage):
             ("Course", "-"),
             ("Enrollment Status", "-"),
             ("Dataset Status", "-"),
-            ("Captured Count", "-")
+            ("Captured Count", "-"),
+            ("Recognition Profile", "-")
         ]
 
         for idx, (label_name, default_val) in enumerate(info_rows):
@@ -477,6 +478,33 @@ class DatasetPage(BasePage):
         img_count = dataset.image_count if dataset else 0
         target = self.dataset_controller.get_target_image_count()
         self.labels["Captured Count"].configure(text=f"{img_count} / {target}")
+
+        # Check recognition profile status
+        try:
+            from src.services.face_recognition_service import FaceRecognitionService
+            rec_service = FaceRecognitionService.get_instance()
+            is_in_model = rec_service.is_student_in_model(student.id)
+            is_outdated = rec_service.is_model_outdated()
+            
+            if is_in_model:
+                if is_outdated:
+                    rec_profile_str = "Model Update Required"
+                    rec_profile_color = ThemeManager.get_color("accent_warning")
+                else:
+                    rec_profile_str = "Included in Model"
+                    rec_profile_color = ThemeManager.get_color("accent_success")
+            else:
+                if dataset and dataset.status == "READY":
+                    rec_profile_str = "Model Update Required"
+                    rec_profile_color = ThemeManager.get_color("accent_warning")
+                else:
+                    rec_profile_str = "Not Registered"
+                    rec_profile_color = ThemeManager.get_color("text_muted")
+        except Exception:
+            rec_profile_str = "Not Registered"
+            rec_profile_color = ThemeManager.get_color("text_muted")
+            
+        self.labels["Recognition Profile"].configure(text=rec_profile_str, text_color=rec_profile_color)
 
     def reset_validation_display(self) -> None:
         for val_lbl in self.checklist_labels.values():

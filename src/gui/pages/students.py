@@ -747,7 +747,7 @@ class StudentDetailDialog(Dialog):
         self.controller = controller
         self.student_id = student_id
         
-        super().__init__(parent, "Student Profile Details", width=620, height=540)
+        super().__init__(parent, "Student Profile Details", width=640, height=580)
         self.build_details_layout()
 
     def build_details_layout(self) -> None:
@@ -834,11 +834,25 @@ class StudentDetailDialog(Dialog):
         img_count = dataset.image_count if dataset else 0
         target_count = dataset_ctrl.get_target_image_count()
         
-        add_info_row(status_panel, "Dataset Status", student.face_dataset_status)
-        add_info_row(status_panel, "Captured Frames", f"{img_count} / {target_count} Images")
+        # Fetch recognition service details
+        from src.services.face_recognition_service import FaceRecognitionService
+        rec_service = FaceRecognitionService.get_instance()
+        is_registered = rec_service.is_student_in_model(student.id)
+        rec_profile = "REGISTERED" if is_registered else "NOT REGISTERED"
         
-        vector_status = "Generated (512-D)" if student.face_dataset_status == "READY" else "Not Generated (512-D)"
-        add_info_row(status_panel, "Embedding Vector", vector_status)
+        metadata = rec_service.metadata
+        last_update = "-"
+        if metadata and "updated_at" in metadata:
+            try:
+                dt = datetime.fromisoformat(metadata["updated_at"])
+                last_update = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                last_update = metadata["updated_at"]
+
+        add_info_row(status_panel, "Face Dataset", student.face_dataset_status)
+        add_info_row(status_panel, "Captured Frames", f"{img_count} / {target_count} Images")
+        add_info_row(status_panel, "Recognition Profile", rec_profile)
+        add_info_row(status_panel, "Last Model Update", last_update)
         
         def manage_dataset_click():
             self.destroy()
@@ -858,6 +872,65 @@ class StudentDetailDialog(Dialog):
             command=manage_dataset_click
         )
         btn.pack(pady=ThemeManager.PAD_MD)
+
+        # 6. Attendance Summary & History Panel
+        c6 = Card(scroll)
+        c6.grid(row=3, column=0, columnspan=2, sticky="ew", padx=4, pady=8)
+        lbl6 = ctk.CTkLabel(c6, text="Attendance Summary & History", font=ThemeManager.get_font(size=12, weight="bold"), text_color=ThemeManager.get_color("accent_primary"))
+        lbl6.pack(anchor="w", padx=ThemeManager.PAD_MD, pady=(ThemeManager.PAD_SM, ThemeManager.PAD_XS))
+
+        from src.controllers.attendance_controller import AttendanceController
+        att_ctrl = AttendanceController()
+        att_summary = att_ctrl.get_student_attendance_summary(student.id)
+        
+        summary_panel = ctk.CTkFrame(c6, fg_color="transparent")
+        summary_panel.pack(fill="x", padx=ThemeManager.PAD_LG, pady=2)
+        
+        add_info_row(summary_panel, "Total Sessions", str(att_summary["total"]))
+        add_info_row(summary_panel, "Present Sessions", str(att_summary["present"]))
+        add_info_row(summary_panel, "Late Sessions", str(att_summary["late"]))
+        add_info_row(summary_panel, "Attendance Rate", f"{att_summary['rate']}%")
+
+        # Recent Attendance History logs
+        recent_lbl = ctk.CTkLabel(c6, text="Recent Attendance Logs", font=ThemeManager.get_font(size=11, weight="bold"), text_color=ThemeManager.get_color("text_light"))
+        recent_lbl.pack(anchor="w", padx=ThemeManager.PAD_LG, pady=(ThemeManager.PAD_SM, ThemeManager.PAD_XS))
+
+        recent_logs = att_ctrl.get_student_attendance_history(student.id, limit=5)
+        if not recent_logs:
+            no_logs_lbl = ctk.CTkLabel(c6, text="No attendance recorded yet.", font=ThemeManager.get_font(size=11), text_color=ThemeManager.get_color("text_muted"))
+            no_logs_lbl.pack(anchor="w", padx=ThemeManager.PAD_LG, pady=2)
+        else:
+            log_table_frame = ctk.CTkFrame(c6, fg_color=ThemeManager.get_color("bg_active"), corner_radius=ThemeManager.CORNER_RADIUS_SM)
+            log_table_frame.pack(fill="x", padx=ThemeManager.PAD_LG, pady=4)
+            
+            for idx, log in enumerate(recent_logs):
+                log_row = ctk.CTkFrame(log_table_frame, height=26, fg_color="transparent" if idx % 2 == 0 else ThemeManager.get_color("bg_main"))
+                log_row.pack(fill="x", pady=1)
+                
+                date_txt = log.date
+                time_txt = format_display_time(log.time_in)
+                status_txt = log.status
+                source_txt = log.source
+                
+                status_colors = {
+                    "PRESENT": ThemeManager.get_color("accent_success"),
+                    "LATE": ThemeManager.get_color("accent_warning"),
+                    "ABSENT": ThemeManager.get_color("accent_danger"),
+                    "EXCUSED": ThemeManager.get_color("accent_secondary")
+                }
+                status_color = status_colors.get(status_txt, ThemeManager.get_color("text_primary"))
+
+                lbl_date = ctk.CTkLabel(log_row, text=date_txt, font=ThemeManager.get_font(size=10), width=90, anchor="w")
+                lbl_date.pack(side="left", padx=4)
+                
+                lbl_time = ctk.CTkLabel(log_row, text=time_txt, font=ThemeManager.get_font(size=10), width=80, anchor="w")
+                lbl_time.pack(side="left", padx=4)
+                
+                lbl_status = ctk.CTkLabel(log_row, text=status_txt, font=ThemeManager.get_font(size=10, weight="bold"), text_color=status_color, width=90, anchor="w")
+                lbl_status.pack(side="left", padx=4)
+                
+                lbl_src = ctk.CTkLabel(log_row, text=f"Source: {source_txt}", font=ThemeManager.get_font(size=10), text_color=ThemeManager.get_color("text_muted"), anchor="w")
+                lbl_src.pack(side="left", fill="x", expand=True, padx=4)
 
         # Bottom Close Button
         close_btn = ctk.CTkButton(

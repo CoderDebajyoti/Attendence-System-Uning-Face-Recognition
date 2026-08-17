@@ -12,6 +12,16 @@ class FaceDetectorService:
     Encapsulates face detection logic using OpenCV Haar Cascade.
     Provides methods to locate bounding boxes and validate suitability for datasets.
     """
+    _instance = None
+
+    @classmethod
+    def get_instance(cls, min_face_size: int = 100, cascade_path: str = None):
+        """
+        Singleton accessor to share detector instance.
+        """
+        if cls._instance is None:
+            cls._instance = cls(min_face_size, cascade_path)
+        return cls._instance
 
     def __init__(self, min_face_size: int = 100, cascade_path: str = None) -> None:
         import os

@@ -3,6 +3,7 @@
 # ==============================================================================
 
 import customtkinter as ctk
+import logging
 from src.gui.themes import ThemeManager
 from src.controllers.auth_controller import AuthController
 
@@ -178,8 +179,7 @@ class LoginPage(ctk.CTkFrame):
             # Authenticate Login
             user = self.controller.login(username, password)
             if user:
-                logger = AuthController().auth_service.logger
-                logger.info(f"Successful GUI login for user: '{username}'")
+                logging.getLogger("app.gui").info(f"Successful GUI login for user: '{username}'")
                 self.on_success(user)
             else:
                 self.error_lbl.configure(
